@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db';
+import postRoutes from './routes/postRoutes';
 
 dotenv.config();
 
@@ -19,6 +20,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.send('Roamie API running');
 });
+
+app.use('/api/posts', postRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
