@@ -1,6 +1,9 @@
 import { Camera } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 function WriteStoryCard() {
+  const navigate = useNavigate();
+
   return (
     <div className="relative bg-[#FBE4D8] rounded-3xl h-96 p-6 flex flex-col justify-between overflow-hidden">
       <div>
@@ -14,7 +17,10 @@ function WriteStoryCard() {
         </p>
       </div>
 
-      <button className="w-fit flex items-center gap-2 bg-[#1B4332] text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-[#163a2a] transition-colors">
+      <button
+        onClick={() => navigate('/write')}
+        className="w-fit flex items-center gap-2 bg-[#1B4332] text-white text-sm font-medium px-5 py-2.5 rounded-full hover:bg-[#163a2a] transition-colors"
+      >
         Create Post
         <span className="text-lg leading-none">+</span>
       </button>
