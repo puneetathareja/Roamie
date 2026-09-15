@@ -1,6 +1,10 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Heart, MessageCircle, Bookmark } from 'lucide-react';
+import api from '../lib/api';
 
 interface PostCardProps {
+  id: string;
   title: string;
   author: string;
   category: string;
@@ -9,9 +13,29 @@ interface PostCardProps {
   comments?: number;
 }
 
-function PostCard({ title, author, category, coverImage, likes, comments = 0 }: PostCardProps) {
+function PostCard({ id, title, author, category, coverImage, likes, comments = 0 }: PostCardProps) {
+  const [likeCount, setLikeCount] = useState(likes);
+  const [liked, setLiked] = useState(false);
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (liked) return;
+
+    setLikeCount((prev) => prev + 1);
+    setLiked(true);
+
+    api.patch(`/posts/${id}/like`).catch(() => {
+      setLikeCount((prev) => prev - 1);
+      setLiked(false);
+    });
+  };
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-black/5 hover:shadow-md transition-shadow">
+    <Link
+      to={`/posts/${id}`}
+      className="block bg-white rounded-2xl overflow-hidden border border-black/5 hover:shadow-md transition-shadow"
+    >
       <div className="relative h-40">
         <img
           src={coverImage || 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=600&q=80'}
@@ -31,10 +55,10 @@ function PostCard({ title, author, category, coverImage, likes, comments = 0 }: 
 
         <div className="flex items-center justify-between text-xs text-neutral-400">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <Heart size={13} />
-              {likes}
-            </span>
+            <button onClick={handleLike} className="flex items-center gap-1 hover:text-red-400">
+              <Heart size={13} className={liked ? 'fill-red-400 text-red-400' : ''} />
+              {likeCount}
+            </button>
             <span className="flex items-center gap-1">
               <MessageCircle size={13} />
               {comments}
@@ -43,7 +67,7 @@ function PostCard({ title, author, category, coverImage, likes, comments = 0 }: 
           <Bookmark size={14} className="hover:text-neutral-600 cursor-pointer" />
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

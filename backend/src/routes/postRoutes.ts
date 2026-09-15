@@ -13,6 +13,36 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/posts/:id - fetch a single post by id
+router.get('/:id', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    res.json(post);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch post', error });
+  }
+});
+
+// PATCH /api/posts/:id/like - increment likes on a post
+router.patch('/:id/like', async (req, res) => {
+  try {
+    const post = await Post.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { likes: 1 } },
+      { new: true }
+    );
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    res.json(post);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to like post', error });
+  }
+});
+
 // POST /api/posts - create a new post
 router.post('/', async (req, res) => {
   try {
