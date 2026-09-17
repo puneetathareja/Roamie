@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Post from '../models/Post';
+import Comment from '../models/Comment';
 
 const router = Router();
 
@@ -40,6 +41,28 @@ router.patch('/:id/like', async (req, res) => {
     res.json(post);
   } catch (error) {
     res.status(500).json({ message: 'Failed to like post', error });
+  }
+});
+
+// GET /api/posts/:id/comments - fetch comments for a post
+router.get('/:id/comments', async (req, res) => {
+  try {
+    const comments = await Comment.find({ postId: req.params.id }).sort({ createdAt: -1 });
+    res.json(comments);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch comments', error });
+  }
+});
+
+// POST /api/posts/:id/comments - add a comment to a post
+router.post('/:id/comments', async (req, res) => {
+  try {
+    const { author, text } = req.body;
+    const newComment = new Comment({ postId: req.params.id, author, text });
+    const saved = await newComment.save();
+    res.status(201).json(saved);
+  } catch (error) {
+    res.status(400).json({ message: 'Failed to add comment', error });
   }
 });
 
