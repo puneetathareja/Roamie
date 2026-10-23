@@ -1,16 +1,33 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Bell, Sun } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, Bell, Sun, LogOut } from 'lucide-react';
+
+function getStoredUser(): { name: string } | null {
+  try {
+    const raw = localStorage.getItem('user');
+    if (!raw || !localStorage.getItem('token')) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
 
 function Topbar() {
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  const user = getStoredUser();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = query.trim();
     if (!trimmed) return;
     navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
   };
 
   return (
@@ -26,20 +43,46 @@ function Topbar() {
         />
       </form>
 
-      <div className="flex items-center gap-4 ml-6">
+      <div className="flex items-center gap-3 ml-6">
         <button className="p-2 rounded-full hover:bg-black/5">
           <Sun size={18} className="text-neutral-600" />
         </button>
         <button className="p-2 rounded-full hover:bg-black/5">
           <Bell size={18} className="text-neutral-600" />
         </button>
-        <div className="w-9 h-9 rounded-full bg-neutral-300 overflow-hidden">
-          <img
-            src="https://i.pravatar.cc/100"
-            alt="Profile"
-            className="w-full h-full object-cover"
-          />
-        </div>
+
+        {user ? (
+          <>
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-[#1B4332] text-white flex items-center justify-center text-sm font-medium">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-sm text-neutral-700 hidden sm:block">{user.name}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              title="Log out"
+              className="p-2 rounded-full hover:bg-black/5"
+            >
+              <LogOut size={18} className="text-neutral-600" />
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/login"
+              className="text-sm font-medium text-neutral-700 px-3 py-2 rounded-full hover:bg-black/5"
+            >
+              Log in
+            </Link>
+            <Link
+              to="/signup"
+              className="text-sm font-medium text-white bg-[#1B4332] px-4 py-2 rounded-full hover:bg-[#163a2a]"
+            >
+              Sign up
+            </Link>
+          </>
+        )}
       </div>
     </header>
   );
