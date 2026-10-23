@@ -4,10 +4,27 @@ import Comment from '../models/Comment';
 
 const router = Router();
 
-// GET /api/posts - fetch all posts
+// GET /api/posts - fetch all posts (supports ?search= and ?category=)
 router.get('/', async (req, res) => {
   try {
-    const posts = await Post.find().sort({ createdAt: -1 });
+    const { search, category } = req.query;
+    const filter: Record<string, unknown> = {};
+
+    if (category && typeof category === 'string' && category !== 'All') {
+      filter.category = category;
+    }
+
+    if (search && typeof search === 'string') {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'i');
+      filter.$or = [
+        { title: regex },
+        { destination: regex },
+        { tags: regex },
+      ];
+    }
+
+    const posts = await Post.find(filter).sort({ createdAt: -1 });
     res.json(posts);
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch posts', error });

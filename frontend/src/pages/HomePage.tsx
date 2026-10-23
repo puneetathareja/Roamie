@@ -20,14 +20,17 @@ function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [category, setCategory] = useState('All');
 
   useEffect(() => {
+    setLoading(true);
+    setError('');
     api
-      .get('/posts')
+      .get('/posts', { params: { category } })
       .then((res) => setPosts(res.data))
       .catch(() => setError('Could not load posts. Is your backend running?'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [category]);
 
   return (
     <div className="flex min-h-screen bg-[#FAF6EF]">
@@ -42,17 +45,19 @@ function HomePage() {
             <WriteStoryCard />
           </div>
 
-          <CategoryFilter />
+          <CategoryFilter active={category} onChange={setCategory} />
 
           <div className="mt-8">
-            <h2 className="font-serif text-xl text-neutral-800 mb-4">Featured Stories</h2>
+            <h2 className="font-serif text-xl text-neutral-800 mb-4">
+              {category === 'All' ? 'Featured Stories' : `${category} Stories`}
+            </h2>
 
             {loading && <p className="text-neutral-400 text-sm">Loading stories...</p>}
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
             {!loading && !error && posts.length === 0 && (
               <p className="text-neutral-400 text-sm">
-                No posts yet. Create one from Thunder Client or your Write Story page.
+                No stories in this category yet. Be the first to write one!
               </p>
             )}
 

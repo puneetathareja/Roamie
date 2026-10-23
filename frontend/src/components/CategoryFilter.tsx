@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Grid2x2, Mountain, Waves, Building2, Utensils, Compass, Landmark, Leaf, Backpack } from 'lucide-react';
 
 const categories = [
@@ -13,15 +12,18 @@ const categories = [
   { label: 'Backpacking', icon: Backpack },
 ];
 
-function CategoryFilter() {
-  const [active, setActive] = useState('All');
+interface CategoryFilterProps {
+  active: string;
+  onChange: (category: string) => void;
+}
 
+function CategoryFilter({ active, onChange }: CategoryFilterProps) {
   return (
     <div className="flex flex-wrap gap-2 mt-6">
       {categories.map(({ label, icon: Icon }) => (
         <button
           key={label}
-          onClick={() => setActive(label)}
+          onClick={() => onChange(label)}
           className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm border transition-colors ${
             active === label
               ? 'bg-[#1B4332] text-white border-[#1B4332]'
