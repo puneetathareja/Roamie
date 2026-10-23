@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, MessageCircle, Bookmark } from 'lucide-react';
 import api from '../lib/api';
+import { useBookmarks } from '../context/BookmarksContext';
 
 interface PostCardProps {
   id: string;
@@ -16,6 +17,8 @@ interface PostCardProps {
 function PostCard({ id, title, author, category, coverImage, likes, comments = 0 }: PostCardProps) {
   const [likeCount, setLikeCount] = useState(likes);
   const [liked, setLiked] = useState(false);
+  const { bookmarkedIds, toggleBookmark } = useBookmarks();
+  const bookmarked = bookmarkedIds.has(id);
 
   const handleLike = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -29,6 +32,12 @@ function PostCard({ id, title, author, category, coverImage, likes, comments = 0
       setLikeCount((prev) => prev - 1);
       setLiked(false);
     });
+  };
+
+  const handleBookmark = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleBookmark(id);
   };
 
   return (
@@ -64,7 +73,12 @@ function PostCard({ id, title, author, category, coverImage, likes, comments = 0
               {comments}
             </span>
           </div>
-          <Bookmark size={14} className="hover:text-neutral-600 cursor-pointer" />
+          <button onClick={handleBookmark} className="hover:text-neutral-600">
+            <Bookmark
+              size={14}
+              className={bookmarked ? 'fill-[#1B4332] text-[#1B4332]' : ''}
+            />
+          </button>
         </div>
       </div>
     </Link>
