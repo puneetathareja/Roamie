@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import Post from '../models/Post';
 import Comment from '../models/Comment';
+import User from '../models/User';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
@@ -71,11 +73,20 @@ router.get('/:id/comments', async (req, res) => {
   }
 });
 
-// POST /api/posts/:id/comments - add a comment to a post
-router.post('/:id/comments', async (req, res) => {
+// POST /api/posts/:id/comments - add a comment (login required)
+router.post('/:id/comments', requireAuth, async (req: AuthRequest, res) => {
   try {
-    const { author, text } = req.body;
-    const newComment = new Comment({ postId: req.params.id, author, text });
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const newComment = new Comment({
+      postId: req.params.id,
+      author: user.name,
+      authorId: user._id,
+      text: req.body.text,
+    });
     const saved = await newComment.save();
     res.status(201).json(saved);
   } catch (error) {
@@ -83,10 +94,25 @@ router.post('/:id/comments', async (req, res) => {
   }
 });
 
-// POST /api/posts - create a new post
-router.post('/', async (req, res) => {
+// POST /api/posts - create a new post (login required)
+router.post('/', requireAuth, async (req: AuthRequest, res) => {
   try {
-    const newPost = new Post(req.body);
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    const { title, content, destination, coverImage, category, tags } = req.body;
+    const newPost = new Post({
+      title,
+      content,
+      destination,
+      coverImage,
+      category,
+      tags,
+      author: user.name,
+      authorId: user._id,
+    });
     const savedPost = await newPost.save();
     res.status(201).json(savedPost);
   } catch (error) {

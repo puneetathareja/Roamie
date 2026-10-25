@@ -58,20 +58,15 @@ function PostDetail() {
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
+    if (!localStorage.getItem('token')) {
       alert('Please log in to comment.');
       return;
     }
     if (!newComment.trim()) return;
 
-    const user = JSON.parse(userStr);
     setPosting(true);
     try {
-      const res = await api.post(`/posts/${id}/comments`, {
-        author: user.name,
-        text: newComment,
-      });
+      const res = await api.post(`/posts/${id}/comments`, { text: newComment });
       setComments((prev) => [res.data, ...prev]);
       setNewComment('');
     } catch {

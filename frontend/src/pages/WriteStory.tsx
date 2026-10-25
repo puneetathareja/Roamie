@@ -17,13 +17,6 @@ function WriteStory() {
   const handlePublish = async () => {
     setError('');
 
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
-      setError('You need to be logged in to publish a story.');
-      return;
-    }
-    const user = JSON.parse(userStr);
-
     if (!title || !destination || !content) {
       setError('Please fill in the title, destination, and story.');
       return;
@@ -41,7 +34,6 @@ function WriteStory() {
           .split(',')
           .map((t) => t.trim())
           .filter(Boolean),
-        author: user.name,
       });
       navigate('/');
     } catch {
@@ -154,4 +146,4 @@ function WriteStory() {
   );
 }
 
-export default WriteStory;
+export default WriteStory;  
