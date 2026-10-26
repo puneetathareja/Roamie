@@ -24,6 +24,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/write/:id"
+          element={
+            <ProtectedRoute>
+              <WriteStory />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/posts/:id" element={<PostDetail />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/bookmarks" element={<BookmarksPage />} />

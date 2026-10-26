@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Camera } from 'lucide-react';
 import api from '../lib/api';
 
 function WriteStory() {
+  const { id } = useParams();
+  const isEditing = Boolean(id);
+
   const [title, setTitle] = useState('');
   const [destination, setDestination] = useState('');
   const [content, setContent] = useState('');
@@ -12,9 +15,28 @@ function WriteStory() {
   const [category, setCategory] = useState('Adventure');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingPost, setLoadingPost] = useState(isEditing);
   const navigate = useNavigate();
 
-  const handlePublish = async () => {
+  // In edit mode, load the existing post into the form
+  useEffect(() => {
+    if (!id) return;
+    api
+      .get(`/posts/${id}`)
+      .then((res) => {
+        const p = res.data;
+        setTitle(p.title);
+        setDestination(p.destination);
+        setContent(p.content);
+        setCategory(p.category);
+        setCoverImage(p.coverImage || '');
+        setTags((p.tags || []).join(', '));
+      })
+      .catch(() => setError('Could not load this story.'))
+      .finally(() => setLoadingPost(false));
+  }, [id]);
+
+  const handleSubmit = async () => {
     setError('');
 
     if (!title || !destination || !content) {
@@ -22,31 +44,53 @@ function WriteStory() {
       return;
     }
 
+    const payload = {
+      title,
+      destination,
+      content,
+      category,
+      coverImage: coverImage || undefined,
+      tags: tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
+    };
+
     setLoading(true);
     try {
-      await api.post('/posts', {
-        title,
-        destination,
-        content,
-        category,
-        coverImage: coverImage || undefined,
-        tags: tags
-          .split(',')
-          .map((t) => t.trim())
-          .filter(Boolean),
-      });
-      navigate('/');
-    } catch {
-      setError('Failed to publish. Please try again.');
+      if (isEditing) {
+        await api.patch(`/posts/${id}`, payload);
+        navigate(`/posts/${id}`);
+      } else {
+        await api.post('/posts', payload);
+        navigate('/');
+      }
+    } catch (err) {
+      const status = (err as { response?: { status?: number } }).response?.status;
+      if (status === 403) {
+        setError('You can only edit your own stories.');
+      } else {
+        setError(isEditing ? 'Failed to save changes. Please try again.' : 'Failed to publish. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  if (loadingPost) {
+    return (
+      <div className="min-h-screen bg-[#FAF6EF] flex items-center justify-center text-neutral-400">
+        Loading story...
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FAF6EF] flex justify-center px-4 py-10">
       <div className="w-full max-w-2xl bg-white rounded-3xl p-8">
-        <h1 className="font-serif text-2xl text-[#1B4332] mb-6">Write a Travel Story</h1>
+        <h1 className="font-serif text-2xl text-[#1B4332] mb-6">
+          {isEditing ? 'Edit Your Story' : 'Write a Travel Story'}
+        </h1>
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
@@ -128,17 +172,24 @@ function WriteStory() {
         <div className="flex justify-end gap-3">
           <button
             type="button"
+            onClick={() => navigate(isEditing ? `/posts/${id}` : '/')}
             className="px-5 py-2.5 rounded-full text-sm font-medium text-neutral-600 border border-black/10 hover:bg-black/5"
           >
-            Save Draft
+            {isEditing ? 'Cancel' : 'Save Draft'}
           </button>
           <button
             type="button"
-            onClick={handlePublish}
+            onClick={handleSubmit}
             disabled={loading}
             className="px-5 py-2.5 rounded-full text-sm font-medium text-white bg-[#1B4332] hover:bg-[#163a2a] disabled:opacity-60"
           >
-            {loading ? 'Publishing...' : 'Publish'}
+            {loading
+              ? isEditing
+                ? 'Saving...'
+                : 'Publishing...'
+              : isEditing
+                ? 'Save Changes'
+                : 'Publish'}
           </button>
         </div>
       </div>
@@ -146,4 +197,4 @@ function WriteStory() {
   );
 }
 
-export default WriteStory;  
+export default WriteStory;

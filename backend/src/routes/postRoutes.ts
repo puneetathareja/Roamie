@@ -120,4 +120,51 @@ router.post('/', requireAuth, async (req: AuthRequest, res) => {
   }
 });
 
+// PATCH /api/posts/:id - edit a post (owner only)
+router.patch('/:id', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    if (!post.authorId || post.authorId.toString() !== req.userId) {
+      return res.status(403).json({ message: 'You can only edit your own posts' });
+    }
+
+    const { title, content, destination, coverImage, category, tags } = req.body;
+    if (title !== undefined) post.title = title;
+    if (content !== undefined) post.content = content;
+    if (destination !== undefined) post.destination = destination;
+    if (coverImage !== undefined) post.coverImage = coverImage;
+    if (category !== undefined) post.category = category;
+    if (tags !== undefined) post.tags = tags;
+
+    const updated = await post.save();
+    res.json(updated);
+  } catch (error) {
+    res.status(400).json({ message: 'Failed to update post', error });
+  }
+});
+
+// DELETE /api/posts/:id - delete a post (owner only)
+router.delete('/:id', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+    if (!post.authorId || post.authorId.toString() !== req.userId) {
+      return res.status(403).json({ message: 'You can only delete your own posts' });
+    }
+
+    await Comment.deleteMany({ postId: post._id });
+    await User.updateMany({ bookmarks: post._id }, { $pull: { bookmarks: post._id } });
+    await post.deleteOne();
+
+    res.json({ message: 'Post deleted' });
+  } catch (error) {
+    res.status(400).json({ message: 'Failed to delete post', error });
+  }
+});
+
 export default router;
