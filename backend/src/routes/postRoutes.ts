@@ -33,6 +33,17 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/posts/mine - posts written by the logged-in user
+// (must stay above '/:id', otherwise "mine" would be read as a post id)
+router.get('/mine', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    const posts = await Post.find({ authorId: req.userId }).sort({ createdAt: -1 });
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch your posts', error });
+  }
+});
+
 // GET /api/posts/:id - fetch a single post by id
 router.get('/:id', async (req, res) => {
   try {

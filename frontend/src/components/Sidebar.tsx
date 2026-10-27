@@ -4,7 +4,7 @@ import { Home, Compass, BookOpen, Bookmark, Bell, MessageCircle, Send } from 'lu
 const navItems = [
   { label: 'Home', icon: Home, to: '/' },
   { label: 'Explore', icon: Compass },
-  { label: 'My Stories', icon: BookOpen },
+  { label: 'My Stories', icon: BookOpen, to: '/my-stories' },
   { label: 'Bookmarks', icon: Bookmark, to: '/bookmarks' },
   { label: 'Notifications', icon: Bell, badge: 3 },
   { label: 'Messages', icon: MessageCircle },

@@ -8,6 +8,7 @@ import WriteStory from './pages/WriteStory';
 import PostDetail from './pages/PostDetail';
 import SearchResults from './pages/SearchResults';
 import BookmarksPage from './pages/BookmarksPage';
+import MyStoriesPage from './pages/MyStoriesPage';
 
 function App() {
   return (
@@ -29,6 +30,14 @@ function App() {
           element={
             <ProtectedRoute>
               <WriteStory />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-stories"
+          element={
+            <ProtectedRoute>
+              <MyStoriesPage />
             </ProtectedRoute>
           }
         />
